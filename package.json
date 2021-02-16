@@ -1,0 +1,24 @@
+{
+  "name": "@zingle/ndjson",
+  "version": "0.0.1",
+  "description": "parse ND-JSON streams in transform",
+  "main": "ndjson.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Zingle/node-ndjson.git"
+  },
+  "author": "Richard Remer <reanjr@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Zingle/node-ndjson/issues"
+  },
+  "homepage": "https://github.com/Zingle/node-ndjson#readme",
+  "devDependencies": {
+    "expect.js": "^0.3.1",
+    "mocha": "^8.3.0",
+    "sinon": "^9.2.4"
+  }
+}

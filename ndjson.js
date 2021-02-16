@@ -1,6 +1,7 @@
 const {Transform} = require("stream");
 
 const defaults = {
+    maxSize: Infinity,    // maximum document size
     strict: true          // strict handling
 };
 
@@ -12,21 +13,38 @@ function ndjson(options={}) {
     options = {...defaults, ...options};
 
     let buffer = Buffer(0);
+    let oversized = false;
 
     return new Transform({
         objectMode: true,
         transform(chunk, encoding, done) {
             let offset = 0;
             let index = -1;
+            let pushed = false;
 
             buffer = Buffer.concat([buffer, chunk]);
 
-            while (~(index = buffer.indexOf(10, offset))) {
-                push(this, buffer.slice(offset, index));
+            // create a window into the starting buffer data
+            const window = buffer.slice(0, options.maxSize);
+
+            while (~(index = window.indexOf(10, offset))) {
+                if (oversized) {
+                    oversized = false;
+                } else {
+                    push(this, buffer.slice(offset, index));
+                    pushed = true;
+                }
+
                 offset = index + 1;   // set offset after newline
             }
 
-            buffer = buffer.slice(offset);
+            // if full window is missing newline, document is too big
+            if (!pushed && window.length === options.maxSize) {
+                oversized = true;
+                this.emit("error", new Error("document too big"));
+            }
+
+            buffer = oversized ? Buffer(0) : buffer.slice(offset);
             done();
         },
         flush(done) {

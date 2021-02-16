@@ -4,7 +4,7 @@ const ndjson = require("..");
 
 const EOL = Buffer.from([10]);          // end-of-line byte sequence
 
-describe("ndjson({strict})", () => {
+describe("ndjson({maxSize, strict})", () => {
     let stream;
 
     describe("-> Transform", () => {
@@ -35,7 +35,7 @@ describe("ndjson({strict})", () => {
         });
     });
 
-    describe("w/ strict mode enabled", () => {
+    describe("option: strict enabled", () => {
         beforeEach(() => {
             stream = ndjson({strict: true});
         });
@@ -52,7 +52,7 @@ describe("ndjson({strict})", () => {
         });
     });
 
-    describe("w/ strict mode disabled", () => {
+    describe("option: strict disabled", () => {
         beforeEach(() => {
             stream = ndjson({strict: false});
         });
@@ -66,6 +66,31 @@ describe("ndjson({strict})", () => {
             const doc = stream.read();
 
             expect(doc.A).to.be("foo");
+        });
+    });
+
+    describe("option: maxSize", () => {
+        beforeEach(() => {
+            stream = ndjson({maxSize: 32});
+        });
+
+        it("should error if document is bigger than maxSize", () => {
+            const body = JSON.stringify({foo: {bar: {baz: {bang: 42}}}});
+            const errspy = sinon.spy();
+
+            stream.on("error", errspy);
+            stream.write(Buffer.from(body)); stream.write(EOL);
+            stream.end();
+
+            const doc = stream.read();
+
+            expect(errspy.calledOnce).to.be(true);
+
+            const call = errspy.args.shift();
+            const arg = call.shift();
+
+            expect(arg).to.be.an(Error);
+            expect(arg.message).to.be("document too big");
         });
     });
 });

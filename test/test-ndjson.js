@@ -33,6 +33,23 @@ describe("ndjson({maxSize, strict})", () => {
             expect(docA.A).to.be("foo");
             expect(docB.B).to.be("foo");
         });
+
+        it("should be iterable", async () => {
+            const bodyA = JSON.stringify({A:"foo"});
+            const bodyB = JSON.stringify({B:"foo"});
+            const docs = [];
+
+            stream.write(Buffer.from(bodyA)); stream.write(EOL);
+            stream.write(Buffer.from(bodyB)); stream.write(EOL);
+            stream.end();
+
+            for await (const doc of stream) {
+                docs.push(doc);
+                expect(doc).to.be.an("object");
+            }
+
+            expect(docs.length).to.be(2);
+        });
     });
 
     describe("option: strict enabled", () => {

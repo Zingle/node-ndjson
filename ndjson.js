@@ -53,6 +53,9 @@ function ndjson(options={}) {
             } else if (buffer.length) {
                 push(this, buffer);
             }
+
+            // shouldn't be needed, but otherwise looping hangs after
+            this.push(null);
         }
     });
 
